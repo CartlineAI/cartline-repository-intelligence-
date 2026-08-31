@@ -1,0 +1,31 @@
+name: Sync THINKCAR V7.1 WPForms
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/sync-thinkcar-v7-1-wpforms.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download canonical artifact
+        env:
+          ARTIFACT_URL: 'https://sdmntpritalynorth.oaiusercontent.com/files/00000000-212c-8246-ae3b-3c3337b3b1eb/raw?se=2026-08-31T06%3A22%3A15Z&sp=r&sv=2026-02-06&sr=b&scid=6a96424d-e800-5803-8433-6de164b3fe90&skoid=9b41a688-1b44-4731-856e-b0efcf3660ed&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-30T18%3A57%3A00Z&ske=2026-08-31T18%3A57%3A00Z&sks=b&skv=2026-02-06&sig=iAqHDP1gIz42DdDMPt4dfD8ITnNXDl5ZvgHOgNcHip4%3D'
+        run: |
+          curl -fL "$ARTIFACT_URL" -o /tmp/a.zip
+          rm -rf /tmp/a && mkdir -p /tmp/a
+          unzip -q /tmp/a.zip -d /tmp/a
+          node --check /tmp/a/thinkcar-mvp-deploy.js
+          cp /tmp/a/thinkcar-mvp-deploy.js deploy/thinkcar-mvp.js
+      - name: Commit mirror
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add deploy/thinkcar-mvp.js
+          git commit -m 'deploy: publish THINKCAR V7.1 WPForms transport' || exit 0
+          git push
