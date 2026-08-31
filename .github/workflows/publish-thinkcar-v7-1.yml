@@ -1,0 +1,48 @@
+name: Publish THINKCAR V7.1
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-thinkcar-v7-1.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download canonical V7.1 artifact
+        env:
+          ARTIFACT_URL: 'https://sdmntprnortheu.oaiusercontent.com/files/00000000-bb18-81f4-aa6c-e2776e725624/raw?se=2026-08-31T06%3A16%3A54Z&sp=r&sv=2026-02-06&sr=b&scid=726fdfcf-8dcb-5249-ac47-f9ad335b44f3&skoid=9b41a688-1b44-4731-856e-b0efcf3660ed&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-30T18%3A43%3A41Z&ske=2026-08-31T18%3A43%3A41Z&sks=b&skv=2026-02-06&sig=i92Fv4AkIJ/DHYZ1D5uqDn/FNxBbo9sdeQXwzw3sMOQ%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o /tmp/a.zip
+          rm -rf /tmp/a && mkdir -p /tmp/a
+          unzip -q /tmp/a.zip -d /tmp/a
+          node --check /tmp/a/thinkcar-mvp-deploy.js
+          cp /tmp/a/thinkcar-mvp-deploy.js deploy/thinkcar-mvp.js
+      - name: Package Engineering endpoint plugin
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/cartline-engineering-intake
+          mkdir -p /tmp/cartline-engineering-intake
+          cp cartline-engineering-intake.php /tmp/cartline-engineering-intake/cartline-engineering-intake.php
+          cd /tmp
+          zip -qr cartline-engineering-intake.zip cartline-engineering-intake
+      - name: Commit browser artifact
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add deploy/thinkcar-mvp.js
+          git commit -m 'deploy: publish THINKCAR V7.1' || true
+          git push
+      - name: Publish plugin release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete cartline-engineering-intake-v1.0.0 --yes >/dev/null 2>&1 || true
+          git tag -d cartline-engineering-intake-v1.0.0 >/dev/null 2>&1 || true
+          git push origin :refs/tags/cartline-engineering-intake-v1.0.0 >/dev/null 2>&1 || true
+          gh release create cartline-engineering-intake-v1.0.0 /tmp/cartline-engineering-intake.zip --title 'Cartline Engineering Intake 1.0.0' --notes 'Automatic Cartline Engineering case submission endpoint.'
