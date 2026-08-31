@@ -1,4 +1,4 @@
-name: Sync THINKCAR final Opera visual QA build
+name: Sync THINKCAR exact final UI compliance build
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download canonical artifact
         env:
-          ARTIFACT_URL: 'https://sdmntpreastus2.oaiusercontent.com/files/00000000-dc94-81f6-a493-b7e55ba176ae/raw?se=2026-08-31T12%3A08%3A28Z&sp=r&sv=2026-02-06&sr=b&scid=0a782173-cf43-562e-855e-3599dd47f5f6&skoid=d294dba5-36f7-432b-aab8-935656489847&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-31T07%3A43%3A54Z&ske=2026-09-01T07%3A43%3A54Z&sks=b&skv=2026-02-06&sig=g8/V50LhBXjM0DqstuYFsZWlLvJeBa8jaDrDK6dfb%2BI%3D'
+          ARTIFACT_URL: 'https://sdmntpreastus2.oaiusercontent.com/files/00000000-ff9c-81f6-8cb7-7304e81e940b/raw?se=2026-08-31T12%3A24%3A24Z&sp=r&sv=2026-02-06&sr=b&scid=467f0822-d297-59e1-a730-b460f137424b&skoid=d294dba5-36f7-432b-aab8-935656489847&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-31T09%3A39%3A00Z&ske=2026-09-01T09%3A39%3A00Z&sks=b&skv=2026-02-06&sig=%2B/i2v%2BImojNSP%2BF4NieepUnlFNYjYKFuRghRpV/2HvY%3D'
         run: |
           set -euo pipefail
           curl -fL "$ARTIFACT_URL" -o /tmp/thinkcar.zip
@@ -25,7 +25,9 @@ jobs:
           grep -q 'selector-live-fixes' /tmp/thinkcar/thinkcar-mvp-deploy.js
           grep -q 'BRAND_WORDS' /tmp/thinkcar/thinkcar-mvp-deploy.js
           grep -q 'Email \*' /tmp/thinkcar/thinkcar-mvp-deploy.js
-          grep -q 'background:#08111f' /tmp/thinkcar/thinkcar-mvp-deploy.js
+          grep -q 'Telefon' /tmp/thinkcar/thinkcar-mvp-deploy.js
+          grep -q 'width:100vw' /tmp/thinkcar/thinkcar-mvp-deploy.js
+          ! grep -q 'Ce tester ai folosit' /tmp/thinkcar/thinkcar-mvp-deploy.js
           mkdir -p deploy
           cp /tmp/thinkcar/thinkcar-mvp-deploy.js deploy/thinkcar-mvp.js
       - name: Commit mirror
@@ -33,5 +35,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add deploy/thinkcar-mvp.js
-          git commit -m 'deploy: publish THINKCAR final Opera visual QA build' || exit 0
+          git commit -m 'deploy: publish THINKCAR exact final UI compliance build' || exit 0
           git push
