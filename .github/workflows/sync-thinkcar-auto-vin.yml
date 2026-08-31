@@ -1,4 +1,4 @@
-name: Sync THINKCAR auto VIN
+name: Sync THINKCAR DTC and symptom release
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download canonical artifact
         env:
-          ARTIFACT_URL: 'https://sdmntprnortheu.oaiusercontent.com/files/00000000-79d4-81f4-b472-007abd3c6171/raw?se=2026-08-31T07%3A22%3A54Z&sp=r&sv=2026-02-06&sr=b&scid=a28e2ff6-429e-5023-a74e-7f6c64400237&skoid=5bfb38a5-43fb-4c63-80a1-6ae1e97e2e16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-30T18%3A41%3A34Z&ske=2026-08-31T18%3A41%3A34Z&sks=b&skv=2026-02-06&sig=sBmEJW6jZqxdukHZnkMI%2BhWBg6VgwcuPRc4RjSibgfg%3D'
+          ARTIFACT_URL: 'https://sdmntprcacentral.oaiusercontent.com/files/00000000-2314-820d-adf2-e28d60b26748/raw?se=2026-08-31T08%3A25%3A31Z&sp=r&sv=2026-02-06&sr=b&scid=0544e740-7cbd-59b7-9c91-95f29808c072&skoid=b5d2651b-fef3-4bb0-a03b-ca59cc22929b&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-31T06%3A52%3A42Z&ske=2026-09-01T06%3A52%3A42Z&sks=b&skv=2026-02-06&sig=aUFTgATWdt5biGKuH3smWKokzQoeH9uvyYipUl/bwa8%3D'
         run: |
           set -euo pipefail
           curl -fL "$ARTIFACT_URL" -o /tmp/thinkcar.zip
@@ -29,5 +29,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add deploy/thinkcar-mvp.js
-          git commit -m 'deploy: publish THINKCAR auto VIN identification' || exit 0
+          git commit -m 'deploy: publish THINKCAR DTC and symptom release' || exit 0
           git push
