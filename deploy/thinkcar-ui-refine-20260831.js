@@ -9,7 +9,7 @@ body.page-id-10709{background:#08111e!important}
 #ct-thinkcar-v6 .cvi-selector{padding:24px 18px 30px!important;border-radius:0!important;border-left:0!important;border-right:0!important;background:linear-gradient(145deg,#07111d 0%,#0a1624 64%,#0c1928 100%)!important}
 #ct-thinkcar-v6 .cvi-kicker{font-size:12px!important;letter-spacing:.11em!important;margin-bottom:5px!important}
 #ct-thinkcar-v6 .cvi-selector>h2{font-size:clamp(27px,2.35vw,38px)!important;line-height:1.08!important;letter-spacing:-.025em!important;margin:0!important;max-width:980px!important}
-#ct-thinkcar-v6 .cvi-hero-subtitle{max-width:900px;margin:8px 0 18px!important;color:#9eafc3!important;font-size:15px;line-height:1.5}
+#ct-thinkcar-v6 .cvi-hero-subtitle{display:block!important;max-width:900px;margin:8px 0 18px!important;color:#9eafc3!important;font-size:15px;line-height:1.5}
 #ct-thinkcar-v6 .cvi-card{border-color:#26374c!important;background:linear-gradient(180deg,rgba(16,29,45,.96),rgba(10,21,34,.96))!important;box-shadow:0 12px 30px rgba(0,0,0,.14);margin-top:12px!important}
 #ct-thinkcar-v6 .cvi-card>h3{font-size:18px!important;letter-spacing:-.01em!important}
 #ct-thinkcar-v6 .cvi-card:hover{border-color:rgba(244,122,22,.62)!important;box-shadow:0 13px 30px rgba(0,0,0,.2),0 0 0 1px rgba(244,122,22,.08)!important}
