@@ -1,0 +1,29 @@
+name: Sync THINKCAR V7
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/sync-thinkcar-v7.yml']
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download canonical V7 artifact
+        env:
+          ARTIFACT_URL: 'https://sdmntprpolandcentral.oaiusercontent.com/files/00000000-cfa4-820a-8eb7-ec44ba58ae99/raw?se=2026-08-31T06%3A02%3A45Z&sp=r&sv=2026-02-06&sr=b&scid=35a5ebb7-3f54-5f48-ba9b-238fc62f40f5&skoid=061609b8-1cdb-4a5b-9e68-c7ab9a523a8f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-30T18%3A42%3A10Z&ske=2026-08-31T18%3A42%3A10Z&sks=b&skv=2026-02-06&sig=RkHVGhgsQJuZhqVihC92x0Xf0Y1q6%2BiiyyHgppJWfjk%3D'
+        run: |
+          set -euo pipefail
+          curl -fL "$ARTIFACT_URL" -o /tmp/v7.zip
+          rm -rf /tmp/v7 && mkdir -p /tmp/v7
+          unzip -q /tmp/v7.zip -d /tmp/v7
+          node --check /tmp/v7/thinkcar-mvp-deploy.js
+          cp /tmp/v7/thinkcar-mvp-deploy.js deploy/thinkcar-mvp.js
+      - name: Commit mirror
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add deploy/thinkcar-mvp.js
+          git commit -m 'deploy: publish THINKCAR V7 customer UI' || exit 0
+          git push
