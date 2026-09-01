@@ -11,8 +11,7 @@ async function run(){
  const host=document.getElementById('ct-v7-qa-host')||document.body;
  host.innerHTML='<h1>THINKCAR V7 LIVE QA</h1><p id="ct-v7-qa-status">Pornesc verificarea…</p><div id="ct-v7-qa-report"></div><iframe id="ct-v7-qa-frame" style="width:100%;height:1100px;border:1px solid #ccc" src="/selector-thinkcar/?qa_isolated='+Date.now()+'"></iframe>';
  const status=document.getElementById('ct-v7-qa-status'),report=document.getElementById('ct-v7-qa-report'),frame=document.getElementById('ct-v7-qa-frame');
- await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('IFRAME_LOAD_TIMEOUT')),30000);frame.onload=()=>{clearTimeout(timer);resolve()}});
- const doc=frame.contentDocument;await waitFor(()=>doc.querySelector('#ct-thinkcar-v6 [data-cvi="make"]'));
+ const doc=await waitFor(()=>{try{return frame.contentDocument&&frame.contentDocument.querySelector('#ct-thinkcar-v6 [data-cvi="make"]')&&frame.contentDocument}catch(e){return null}},30000,250);
  const root=doc.querySelector('#ct-thinkcar-v6');
  set(root.querySelector('[data-cvi="make"]'),'VOLKSWAGEN');set(root.querySelector('[data-cvi="model"]'),'Passat');set(root.querySelector('[data-cvi="year"]'),'2003');await sleep(500);
  root.querySelector('[data-cvi-tab="jobs"]').click();await sleep(250);
