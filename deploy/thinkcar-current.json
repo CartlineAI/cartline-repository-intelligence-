@@ -1,7 +1,7 @@
 {
-  "release": "V7-job-evidence-recommendation-first-2026-09-01",
-  "commit": "b47b7818d25144c8ea661c056f61f0ad122aa76c",
+  "release": "V7-job-evidence-core-native-2026-09-01",
+  "commit": "f342c9229ec994c1639c0d08623624772a5ccad4",
   "source": "CartlineAI/Monetization",
-  "sourceArtifact": "8bc625db1edb8eec63756d072315815f8e76d0e4",
-  "updated": "2026-09-01T02:38:00Z"
+  "sourceArtifact": "ddd1761c43c8b590cad389b39b804b1d546b4285",
+  "updated": "2026-09-01T02:43:00Z"
 }
