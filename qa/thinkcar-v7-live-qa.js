@@ -11,8 +11,17 @@ async function run(){
  const host=document.getElementById('ct-v7-qa-host')||document.body;
  host.innerHTML='<h1>THINKCAR V7 LIVE QA</h1><p id="ct-v7-qa-status">Pornesc verificarea…</p><div id="ct-v7-qa-report"></div><iframe id="ct-v7-qa-frame" style="width:100%;height:1100px;border:1px solid #ccc" src="/selector-thinkcar/?qa_isolated='+Date.now()+'"></iframe>';
  const status=document.getElementById('ct-v7-qa-status'),report=document.getElementById('ct-v7-qa-report'),frame=document.getElementById('ct-v7-qa-frame');
- document.title='QA INIT · THINKCAR V7';
- const ready=await waitFor(()=>{try{const d=frame.contentDocument,w=frame.contentWindow;if(!d||!w)return null;const root=d.querySelector('#ct-thinkcar-v6');if(!root)return null;if(!w.CartlineThinkcarProvider)return null;if(!root.querySelector('[data-cvi="make"]'))return null;if(!root.querySelector('[data-cvi-dtc-code]'))return null;if(!root.querySelector('[data-eng="send"]'))return null;return{d,w,root}}catch(e){return null}},45000,250);
+ const start=now();let ready=null;
+ while(now()-start<45000){
+   try{
+     const d=frame.contentDocument,w=frame.contentWindow,root=d&&d.querySelector('#ct-thinkcar-v6');
+     const marks={root:!!root,provider:!!(w&&w.CartlineThinkcarProvider),make:!!(root&&root.querySelector('[data-cvi="make"]')),dtc:!!(root&&root.querySelector('[data-cvi-dtc-code]')),eng:!!(root&&root.querySelector('[data-eng="send"]'))};
+     document.title='QA INIT r'+(+marks.root)+' p'+(+marks.provider)+' m'+(+marks.make)+' d'+(+marks.dtc)+' e'+(+marks.eng);
+     if(marks.root&&marks.provider&&marks.make&&marks.dtc&&marks.eng){ready={d,w,root};break}
+   }catch(e){}
+   await sleep(500);
+ }
+ if(!ready)throw new Error('BOOTSTRAP_TIMEOUT');
  const doc=ready.d,root=ready.root;
  set(root.querySelector('[data-cvi="make"]'),'VOLKSWAGEN');set(root.querySelector('[data-cvi="model"]'),'Passat');set(root.querySelector('[data-cvi="year"]'),'2003');await sleep(500);
  root.querySelector('[data-cvi-tab="jobs"]').click();await sleep(250);
