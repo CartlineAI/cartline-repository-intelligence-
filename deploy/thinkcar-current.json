@@ -1,6 +1,7 @@
 {
-  "release": "V6",
-  "commit": "fb5717765b02874fd6c502f47d3ece855dc2f561",
+  "release": "V7-job-evidence-2026-09-01",
+  "commit": "8a128698528317a9d6628158a3abf16258bcf19a",
   "source": "CartlineAI/Monetization",
-  "updated": "2026-08-30T15:40:38Z"
+  "sourceArtifact": "eeca55244e4e2267cc810f56c597b4913603fb6d",
+  "updated": "2026-09-01T02:23:00Z"
 }
