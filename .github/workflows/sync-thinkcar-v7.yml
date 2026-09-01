@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download canonical V7 artifact
         env:
-          ARTIFACT_URL: 'https://sdmntprdenmarkeast.oaiusercontent.com/files/00000000-0f9c-8210-a6dc-c842779bea07/raw?se=2026-09-01T02%3A33%3A29Z&sp=r&sv=2026-02-06&sr=b&scid=8a66df0e-1ffc-5f11-8fda-53b8e3030c02&skoid=9b41a688-1b44-4731-856e-b0efcf3660ed&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-01T02%3A25%3A44Z&ske=2026-09-02T02%3A25%3A44Z&sks=b&skv=2026-02-06&sig=y3tEynSrEi1Cz2oLkztK/TbY9h7Ia36H/OA3c1cAT6c%3D'
+          ARTIFACT_URL: 'https://sdmntprpolandcentral.oaiusercontent.com/files/00000000-f6b4-820a-b139-ce5a1d984582/raw?se=2026-09-01T02%3A42%3A20Z&sp=r&sv=2026-02-06&sr=b&scid=36b44c97-c44a-5c3b-84f1-88e5011cbf58&skoid=9b41a688-1b44-4731-856e-b0efcf3660ed&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-31T23%3A23%3A27Z&ske=2026-09-01T23%3A23%3A27Z&sks=b&skv=2026-02-06&sig=FUpNYyltzgipK25HMRBeO5z6QMGorIkKxZZBAkrlO0c%3D'
         run: |
           set -euo pipefail
           curl -fL "$ARTIFACT_URL" -o /tmp/v7.zip
@@ -25,5 +25,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add deploy/thinkcar-mvp.js
-          git commit -m 'deploy: publish hardened THINKCAR V7 job evidence model' || exit 0
+          git commit -m 'deploy: publish recommendation-first THINKCAR V7 evidence model' || exit 0
           git push
