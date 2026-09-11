@@ -1,8 +1,6 @@
 name: Sync THINKCAR V7
 on:
-  push:
-    branches: [main]
-    paths: ['.github/workflows/sync-thinkcar-v7.yml']
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
