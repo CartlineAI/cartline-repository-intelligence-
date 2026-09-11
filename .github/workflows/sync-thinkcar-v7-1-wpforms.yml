@@ -1,9 +1,7 @@
 name: Sync THINKCAR V7.1 WPForms
 
 on:
-  push:
-    branches: [main]
-    paths: ['.github/workflows/sync-thinkcar-v7-1-wpforms.yml']
+  workflow_dispatch:
 
 permissions:
   contents: write
