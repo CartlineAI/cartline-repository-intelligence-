@@ -1,9 +1,7 @@
 name: Sync THINKCAR final exact selector
 
 on:
-  push:
-    branches: [main]
-    paths: ['.github/workflows/sync-thinkcar-auto-vin.yml']
+  workflow_dispatch:
 
 permissions:
   contents: write
