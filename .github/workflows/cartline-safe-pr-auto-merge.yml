@@ -6,7 +6,7 @@ on:
   schedule:
     - cron: '17 */6 * * *'
   pull_request_target:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -45,7 +45,7 @@ jobs:
             const critical = /(^|\/)(?:\.github|deploy(?:ment)?s?|production|prod|secrets?|credentials?|keys?|auth(?:entication)?|billing|payments?|refunds?|payouts?|checkout|terraform|nas-bridge|systemd|infra(?:structure)?|governance|security|polic(?:y|ies)|bitwarden|\.env)(?:\/|$|[._-])/i;
             const keyFile = /(?:^|\/)(?:\.env(?:\.|$)|[^/]+\.(?:pem|key|p12|pfx|kdbx))$/i;
             const ciName = /(?:^|[^a-z])(?:ci|test|tests|lint|guard|audit|validation|validate|build)(?:[^a-z]|$)/i;
-            const prs = await github.paginate(github.rest.pulls.list, {owner,repo,state:'open',per_page:100}, {maxResults:200});
+            const prs = await github.paginate(github.rest.pulls.list, {owner,repo,state:'open',per_page:100});
             core.info('OPEN_PR_COUNT=' + prs.length + ' DRY_RUN=' + dryRun);
             for (const pr of prs) {
               const n=pr.number;
@@ -58,20 +58,20 @@ jobs:
                 else if (!(Date.parse(pr.created_at)>=cutoff)) status='LEGACY_PR';
                 else if ((pr.labels||[]).some(x=>blockedLabels.has(x.name))) status='REVIEW_REQUIRED';
                 else {
-                  const files=await github.paginate(github.rest.pulls.listFiles,{owner,repo,pull_number:n,per_page:100},{maxResults:501});
+                  const files=await github.paginate(github.rest.pulls.listFiles,{owner,repo,pull_number:n,per_page:100});
                   if (!files.length||files.length>500) status='FILE_SCOPE_UNBOUNDED';
                   else if(files.some(f=>critical.test(f.filename)||keyFile.test(f.filename)||
                     (f.previous_filename&&(critical.test(f.previous_filename)||keyFile.test(f.previous_filename))))) status='CRITICAL_FILE';
                   else {
                     const sha=pr.head.sha;
-                    const checks=await github.paginate(github.rest.checks.listForRef,{owner,repo,ref:sha,per_page:100},{maxResults:501});
+                    const checks=await github.paginate(github.rest.checks.listForRef,{owner,repo,ref:sha,per_page:100});
                     const state=await github.rest.repos.getCombinedStatusForRef({owner,repo,ref:sha,per_page:100});
                     if(checks.length>500) status='CHECKS_UNBOUNDED';
                     else if(!checks.some(c=>ciName.test(c.name)&&c.status==='completed'&&c.conclusion==='success')) status='NO_SUCCESSFUL_CI';
                     else if(checks.some(c=>c.status!=='completed'||!['success','neutral','skipped'].includes(c.conclusion))) status='CHECKS_NOT_GREEN';
                     else if((state.data.statuses||[]).some(s=>s.state!=='success')) status='COMMIT_STATUS_NOT_GREEN';
                     else {
-                      const reviews=await github.paginate(github.rest.pulls.listReviews,{owner,repo,pull_number:n,per_page:100},{maxResults:101});
+                      const reviews=await github.paginate(github.rest.pulls.listReviews,{owner,repo,pull_number:n,per_page:100});
                       if(reviews.length>100) status='REVIEWS_UNBOUNDED';
                       else if(reviews.some(r=>r.state==='CHANGES_REQUESTED')) status='CHANGES_REQUESTED';
                       else {
