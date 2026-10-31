@@ -65,10 +65,12 @@ jobs:
                   else {
                     const sha=pr.head.sha;
                     const checks=await github.paginate(github.rest.checks.listForRef,{owner,repo,ref:sha,per_page:100});
+                    // Do not treat THIS running auto-merge check as a pending CI failure.
+                    const ciChecks=checks.filter(c=>!(c.name==='auto_merge'&&typeof c.details_url==='string'&&c.details_url.includes('/actions/runs/'+process.env.GITHUB_RUN_ID+'/')));
                     const state=await github.rest.repos.getCombinedStatusForRef({owner,repo,ref:sha,per_page:100});
-                    if(checks.length>500) status='CHECKS_UNBOUNDED';
-                    else if(!checks.some(c=>ciName.test(c.name)&&c.status==='completed'&&c.conclusion==='success')) status='NO_SUCCESSFUL_CI';
-                    else if(checks.some(c=>c.status!=='completed'||!['success','neutral','skipped'].includes(c.conclusion))) status='CHECKS_NOT_GREEN';
+                    if(ciChecks.length>500) status='CHECKS_UNBOUNDED';
+                    else if(!ciChecks.some(c=>ciName.test(c.name)&&c.status==='completed'&&c.conclusion==='success')) status='NO_SUCCESSFUL_CI';
+                    else if(ciChecks.some(c=>c.status!=='completed'||!['success','neutral','skipped'].includes(c.conclusion))) status='CHECKS_NOT_GREEN';
                     else if((state.data.statuses||[]).some(s=>s.state!=='success')) status='COMMIT_STATUS_NOT_GREEN';
                     else {
                       const reviews=await github.paginate(github.rest.pulls.listReviews,{owner,repo,pull_number:n,per_page:100});
