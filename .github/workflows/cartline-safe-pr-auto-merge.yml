@@ -4,7 +4,10 @@ name: Cartline safe PR auto-merge
 # Never checks out PR code and never logs sensitive data.
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '17 */6 * * *'
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: [main]
   workflow_dispatch:
     inputs:
       dry_run:
@@ -24,7 +27,7 @@ concurrency:
 
 jobs:
   auto_merge:
-    if: github.repository_owner == 'CartlineAI' && github.ref == 'refs/heads/main'
+    if: github.repository_owner == 'CartlineAI' && github.ref == 'refs/heads/main' && (github.event_name != 'pull_request_target' || github.actor == 'CartlineAI')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
