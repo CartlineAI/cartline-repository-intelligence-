@@ -1,0 +1,94 @@
+name: Cartline safe PR auto-merge
+
+# Owner-authorized routine PR merging, 2026-10-31.
+# Never checks out PR code and never logs sensitive data.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        type: boolean
+        description: 'Show decisions without merging'
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  statuses: read
+
+concurrency:
+  group: cartline-safe-pr-auto-merge
+  cancel-in-progress: false
+
+jobs:
+  auto_merge:
+    if: github.repository_owner == 'CartlineAI' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Merge routine owner PRs only after green CI
+        uses: actions/github-script@v7
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const {owner, repo} = context.repo;
+            const dryRun = process.env.DRY_RUN === 'true';
+            const cutoff = Date.parse('2026-10-31T13:00:00Z');
+            const blockedLabels = new Set(['no-auto-merge','manual-merge','requires-owner-approval','security-review','production-approval']);
+            const critical = /(^|\/)(?:\.github|deploy(?:ment)?s?|production|prod|secrets?|credentials?|keys?|auth(?:entication)?|billing|payments?|refunds?|payouts?|checkout|terraform|nas-bridge|systemd|infra(?:structure)?|governance|security|polic(?:y|ies)|bitwarden|\.env)(?:\/|$|[._-])/i;
+            const keyFile = /(?:^|\/)(?:\.env(?:\.|$)|[^/]+\.(?:pem|key|p12|pfx|kdbx))$/i;
+            const ciName = /(?:^|[^a-z])(?:ci|test|tests|lint|guard|audit|validation|validate|build)(?:[^a-z]|$)/i;
+            const prs = await github.paginate(github.rest.pulls.list, {owner,repo,state:'open',per_page:100}, {maxResults:200});
+            core.info('OPEN_PR_COUNT=' + prs.length + ' DRY_RUN=' + dryRun);
+            for (const pr of prs) {
+              const n=pr.number;
+              let status='';
+              try {
+                if (pr.draft) status='DRAFT';
+                else if (pr.base.ref!=='main') status='NON_MAIN_BASE';
+                else if (pr.user?.login!=='CartlineAI') status='UNTRUSTED_AUTHOR';
+                else if (pr.head.repo?.full_name!==owner+'/'+repo) status='FORK_HEAD';
+                else if (!(Date.parse(pr.created_at)>=cutoff)) status='LEGACY_PR';
+                else if ((pr.labels||[]).some(x=>blockedLabels.has(x.name))) status='REVIEW_REQUIRED';
+                else {
+                  const files=await github.paginate(github.rest.pulls.listFiles,{owner,repo,pull_number:n,per_page:100},{maxResults:501});
+                  if (!files.length||files.length>500) status='FILE_SCOPE_UNBOUNDED';
+                  else if(files.some(f=>critical.test(f.filename)||keyFile.test(f.filename)||
+                    (f.previous_filename&&(critical.test(f.previous_filename)||keyFile.test(f.previous_filename))))) status='CRITICAL_FILE';
+                  else {
+                    const sha=pr.head.sha;
+                    const checks=await github.paginate(github.rest.checks.listForRef,{owner,repo,ref:sha,per_page:100},{maxResults:501});
+                    const state=await github.rest.repos.getCombinedStatusForRef({owner,repo,ref:sha,per_page:100});
+                    if(checks.length>500) status='CHECKS_UNBOUNDED';
+                    else if(!checks.some(c=>ciName.test(c.name)&&c.status==='completed'&&c.conclusion==='success')) status='NO_SUCCESSFUL_CI';
+                    else if(checks.some(c=>c.status!=='completed'||!['success','neutral','skipped'].includes(c.conclusion))) status='CHECKS_NOT_GREEN';
+                    else if((state.data.statuses||[]).some(s=>s.state!=='success')) status='COMMIT_STATUS_NOT_GREEN';
+                    else {
+                      const reviews=await github.paginate(github.rest.pulls.listReviews,{owner,repo,pull_number:n,per_page:100},{maxResults:101});
+                      if(reviews.length>100) status='REVIEWS_UNBOUNDED';
+                      else if(reviews.some(r=>r.state==='CHANGES_REQUESTED')) status='CHANGES_REQUESTED';
+                      else {
+                        const fresh=await github.rest.pulls.get({owner,repo,pull_number:n});
+                        if(fresh.data.head.sha!==sha||fresh.data.draft||fresh.data.mergeable!==true) status='STALE_OR_CONFLICT';
+                        else if(dryRun) status='ELIGIBLE_DRY_RUN';
+                        else {
+                          const result=await github.rest.pulls.merge({owner,repo,pull_number:n,sha,merge_method:'squash'});
+                          core.info('PR #'+n+' MERGED='+result.data.merged+' SHA='+(result.data.sha||'none'));
+                          continue;
+                        }
+                      }
+                    }
+                  }
+                }
+              } catch(e) {
+                status='FAIL_CLOSED_HTTP_'+(e.status||'UNKNOWN');
+                core.warning('PR #'+n+' '+status);
+              }
+              core.info('PR #'+n+' '+status);
+            }
+            // GITHUB_TOKEN merge events do not start unrelated push-triggered jobs.
+            // Production deployments remain on their existing authorized gates.
